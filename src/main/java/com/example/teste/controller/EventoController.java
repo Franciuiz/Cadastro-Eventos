@@ -15,61 +15,55 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.teste.model.Evento;
-import com.example.teste.repository.EventoRepository;
-import com.example.teste.repository.UsuarioRepository;
-import com.example.teste.status.EventoNotFoundException;
+import com.example.teste.services.evento.DeleteEvento;
+import com.example.teste.services.evento.GetAllEventos;
+import com.example.teste.services.evento.GetEventoById;
+import com.example.teste.services.evento.SetEvento;
+import com.example.teste.services.evento.UpdateEvento;
 
 @RestController
 @RequestMapping("/api")
 public class EventoController {
-
-	private final EventoRepository eventoRepository;
-	private final UsuarioRepository usuarioRepository;
-
-	public EventoController(EventoRepository eventoRepository, UsuarioRepository usuarioRepository) {
-		this.eventoRepository = eventoRepository;
-		this.usuarioRepository = usuarioRepository;
-	}
 	
+	private final GetAllEventos serviceGetAllEventos;
+	private final GetEventoById serviceGetEventoById;
+	private final SetEvento serviceSetEvento;
+	private final UpdateEvento serviceUpdateEvento;
+	private final DeleteEvento serviceDeleteEvento;
+	
+	public EventoController(GetAllEventos serviceGetAllEventos, GetEventoById serviceGetEventoById,
+			SetEvento serviceSetEvento, UpdateEvento serviceUpdateEvento, DeleteEvento serviceDeleteEvento) {
+		super();
+		this.serviceGetAllEventos = serviceGetAllEventos;
+		this.serviceGetEventoById = serviceGetEventoById;
+		this.serviceSetEvento = serviceSetEvento;
+		this.serviceUpdateEvento = serviceUpdateEvento;
+		this.serviceDeleteEvento = serviceDeleteEvento;
+	}
+
 	@GetMapping("/evento")
-	public List<Evento> getAllEvento(){
-		return eventoRepository.findAll();
+	public List<Evento> getAllEventos(){
+		return serviceGetAllEventos.getAll();
 	}
 	
 	@GetMapping("/evento/{id}")
 	public Evento getEventoById(@PathVariable(value = "id") Long id) {
-		return eventoRepository.findById(id)
-				.orElseThrow(() -> new EventoNotFoundException("Evento", "id", id));
+		return serviceGetEventoById.getById(id);
 	}
 	
 	@PostMapping("/evento")
 	public Evento setEvento(@Valid @RequestBody Evento evento) {
-		return eventoRepository.save(evento);
+		return serviceSetEvento.set(evento);
 	}
 	
 	@PutMapping("/evento/{id}")
-	public Evento updatePerson(@PathVariable(value = "id") Long id, @Valid @RequestBody Evento eventoDetails) {
-
-		Evento evento = eventoRepository.findById(id)
-				.orElseThrow(() -> new EventoNotFoundException("Evento", "id", id));
-
-		evento.setNome(eventoDetails.getNome());
-		evento.setVagas(eventoDetails.getVagas());
-		evento.setDataHoraInicio(eventoDetails.getDataHoraInicio());
-		evento.setDataHoraFinal(eventoDetails.getDataHoraFinal());
-
-		Evento novoEvento = eventoRepository.save(evento);
-		return novoEvento;
+	public Evento updateEvento(@PathVariable(value = "id") Long id, @Valid @RequestBody Evento eventoDetails) {
+		return serviceUpdateEvento.update(id, eventoDetails);
 	}
 	
 	@DeleteMapping("/evento/{id}")
 	public ResponseEntity<Evento> deleteEvento(@PathVariable(value = "id") Long id) {
-
-		Evento evento = eventoRepository.findById(id)
-				.orElseThrow(() -> new EventoNotFoundException("Evento", "id", id));
-
-		eventoRepository.delete(evento);
-		return ResponseEntity.ok().build();
+		return serviceDeleteEvento.delete(id);
 	}
 	
 	

@@ -15,58 +15,56 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.teste.model.Usuario;
-import com.example.teste.repository.EventoRepository;
-import com.example.teste.repository.UsuarioRepository;
-import com.example.teste.status.UsuarioNotFoundException;
+import com.example.teste.services.usuario.DeleteUsuario;
+import com.example.teste.services.usuario.GetAllUsuarios;
+import com.example.teste.services.usuario.GetUsuarioById;
+import com.example.teste.services.usuario.SetUsuario;
+import com.example.teste.services.usuario.UpdateUsuario;
 
 @RestController
 @RequestMapping("/api")
 public class UsuarioController {
-
-	private final UsuarioRepository usuarioRepository;
-	private final EventoRepository eventoRepository;
-
-	public UsuarioController(UsuarioRepository usuarioRepository, EventoRepository eventoRepository) {
-		this.usuarioRepository = usuarioRepository;
-		this.eventoRepository = eventoRepository;
-	}
 	
+	private final GetAllUsuarios serviceGetAllUsuarios;
+	private final GetUsuarioById serviceGetUsuarioById;
+	private final SetUsuario serviceSetUsuario;
+	private final UpdateUsuario serviceUpdateUsuario;
+	private final DeleteUsuario serviceDeleteUsuario;
+	
+	
+	public UsuarioController(GetAllUsuarios serviceGetAllUsuarios, GetUsuarioById serviceGetUsuarioById,
+			SetUsuario serviceSetUsuario, UpdateUsuario serviceUpdateUsuario, DeleteUsuario serviceDeleteUsuario) {
+		super();
+		this.serviceGetAllUsuarios = serviceGetAllUsuarios;
+		this.serviceGetUsuarioById = serviceGetUsuarioById;
+		this.serviceSetUsuario = serviceSetUsuario;
+		this.serviceUpdateUsuario = serviceUpdateUsuario;
+		this.serviceDeleteUsuario = serviceDeleteUsuario;
+	}
+
 	@GetMapping("/usuario")
-	public List<Usuario> getAllUsuario(){
-		return usuarioRepository.findAll();
+	public List<Usuario> getAllUsuarios(){
+		return serviceGetAllUsuarios.getAll();
 	}
 	
 	@GetMapping("/usuario/{id}")
 	public Usuario getUsuarioById(@PathVariable(value = "id") Long id) {
-		return usuarioRepository.findById(id)
-				.orElseThrow(() -> new UsuarioNotFoundException("Usuario", "id", id));
+		return serviceGetUsuarioById.getById(id);
 	}
 	
 	@PostMapping("/usuario")
 	public Usuario setUsuario(@Valid @RequestBody Usuario usuario) {
-		return usuarioRepository.save(usuario);
+		return serviceSetUsuario.set(usuario);
 	}
 	
 	@PutMapping("/usuario/{id}")
 	public Usuario updateUsuario(@PathVariable(value = "id") Long id, @Valid @RequestBody Usuario usuarioDetails) {
-
-		Usuario usuario = usuarioRepository.findById(id)
-				.orElseThrow(() -> new UsuarioNotFoundException("Usuario", "id", id));
-
-		usuario.setNome(usuarioDetails.getNome());
-
-		Usuario novoUsuario = usuarioRepository.save(usuario);
-		return novoUsuario;
+		return serviceUpdateUsuario.update(id, usuarioDetails);
 	}
 	
 	@DeleteMapping("/usuario/{id}")
 	public ResponseEntity<Usuario> deleteUsuario(@PathVariable(value = "id") Long id) {
-
-		Usuario usuario = usuarioRepository.findById(id)
-				.orElseThrow(() -> new UsuarioNotFoundException("Usuario", "id", id));
-
-		usuarioRepository.delete(usuario);
-		return ResponseEntity.ok().build();
+		return serviceDeleteUsuario.delete(id);
 	}
 	
 	
